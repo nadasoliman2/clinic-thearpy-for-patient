@@ -53,7 +53,11 @@ const validateName = (name: string): string | null => {
   return null;
 };
 
-export function BookingForm() {
+interface BookingFormProps {
+  onBackToMain?: () => void
+}
+
+export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
   const [step, setStep] = useState<typeof STEPS[number]>('service')
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -675,7 +679,7 @@ export function BookingForm() {
             <p className="flex justify-between"><strong>{displayTime}</strong> <span className="text-gray-600">:الوقت</span></p>
           </div>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => onBackToMain ? onBackToMain() : window.location.reload()} 
             className="w-full max-w-md bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold py-3 rounded-lg transition"
           >
             العودة للرئيسية
