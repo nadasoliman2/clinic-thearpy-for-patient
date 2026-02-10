@@ -231,26 +231,21 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
                   })
                   
                   return (
-                    <label key={slot.startTime} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        value={timeInHHMM}
-                        {...register('selectedTime', {
-                          required: 'اختيار الوقت مطلوب'
-                        })}
-                        onChange={() => setDisplayTime(timeLabel)}
-                        className="hidden"
-                      />
-                      <div
-                        className={`p-3 text-sm font-semibold rounded-lg border-2 transition transform hover:scale-105 ${
-                          selectedTime === timeInHHMM
-                            ? 'bg-[#09b6ab] text-white border-[#09b6ab]'
-                            : 'border-gray-200 text-gray-900 hover:border-[#09b6ab]'
-                        }`}
-                      >
-                        {timeLabel}
-                      </div>
-                    </label>
+                    <button
+                      key={slot.startTime}
+                      type="button"
+                      onClick={() => {
+                        setValue('selectedTime', timeInHHMM)
+                        setDisplayTime(timeLabel)
+                      }}
+                      className={`p-3 text-sm font-semibold rounded-lg border-2 transition transform hover:scale-105 cursor-pointer ${
+                        selectedTime === timeInHHMM
+                          ? 'bg-[#09b6ab] text-white border-[#09b6ab]'
+                          : 'border-gray-200 text-gray-900 hover:border-[#09b6ab]'
+                      }`}
+                    >
+                      {timeLabel}
+                    </button>
                   )
                 })}
               </div>
@@ -259,11 +254,6 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
                 <p className="text-red-700 font-semibold mb-1">لا توجد مواعيد متاحة</p>
                 <p className="text-red-600 text-sm">يرجى اختيار تاريخاً آخر</p>
               </div>
-            )}
-            {errors.selectedTime && (
-              <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
-                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.selectedTime.message}
-              </p>
             )}
           </div>
         )}
