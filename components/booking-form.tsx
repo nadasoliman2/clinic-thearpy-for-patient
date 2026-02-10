@@ -245,13 +245,23 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               </button>
             ))}
           </div>
-          <button 
-            onClick={handleNextStep} 
-            disabled={!selectedService}
-            className="w-full bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            متابعة <ChevronRight className="h-5 w-5 rotate-180" />
-          </button>
+          <div className="flex gap-3">
+            {onBackToMain && (
+              <button 
+                onClick={onBackToMain}
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+              >
+                رجوع
+              </button>
+            )}
+            <button 
+              onClick={handleNextStep} 
+              disabled={!selectedService}
+              className={`${onBackToMain ? 'flex-[2]' : 'w-full'} bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2`}
+            >
+              متابعة <ChevronRight className="h-5 w-5 rotate-180" />
+            </button>
+          </div>
         </div>
       )}
 
