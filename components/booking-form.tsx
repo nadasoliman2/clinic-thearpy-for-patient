@@ -24,20 +24,33 @@ interface ValidationErrors {
 
 const STEPS = ['service', 'location', 'therapist', 'date', 'time', 'patient', 'confirmation'] as const;
 
-// دوال التحقق من الصحة
-const validateEmail = (email: string): boolean => {
+// دوال التحقق من الصحة مع رسائل الأخطاء
+const validateEmail = (email: string): string | null => {
+  if (!email.trim()) return 'البريد الإلكتروني مطلوب';
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  if (!emailRegex.test(email)) return 'صيغة البريد الإلكتروني غير صحيحة (مثال: test@email.com)';
+  return null;
 };
 
-const validatePhone = (phone: string): boolean => {
+const validatePhone = (phone: string): string | null => {
+  if (!phone.trim()) return 'رقم الهاتف مطلوب';
   const phoneRegex = /^(\+?20|0)?1[0-2]\d{8}$/;
-  return phoneRegex.test(phone.replace(/\s/g, ''));
+  if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'رقم الهاتف غير صحيح (مثال: 01001234567 أو 201001234567)';
+  return null;
 };
 
-const validateAge = (age: string): boolean => {
+const validateAge = (age: string): string | null => {
+  if (!age.trim()) return 'العمر مطلوب';
   const ageNum = parseInt(age);
-  return ageNum >= 1 && ageNum <= 120;
+  if (isNaN(ageNum)) return 'يجب إدخال رقم صحيح';
+  if (ageNum < 1 || ageNum > 120) return 'العمر يجب أن يكون بين 1 و 120 سنة';
+  return null;
+};
+
+const validateName = (name: string): string | null => {
+  if (!name.trim()) return 'الاسم مطلوب';
+  if (name.trim().length < 3) return 'الاسم يجب أن يكون 3 أحرف على الأقل';
+  return null;
 };
 
 export function BookingForm() {
@@ -113,34 +126,44 @@ export function BookingForm() {
     }
   };
 
-  // دالة التحقق من بيانات المريض
+  // دالة التحقق من بيانات المريض عند الضغط على الزر
   const validatePatientInfo = (): boolean => {
     const errors: ValidationErrors = {};
     
-    if (!patientInfo.name.trim()) {
-      errors.name = 'الاسم مطلوب';
-    }
+    const nameError = validateName(patientInfo.name);
+    if (nameError) errors.name = nameError;
     
-    if (!patientInfo.email.trim()) {
-      errors.email = 'البريد الإلكتروني مطلوب';
-    } else if (!validateEmail(patientInfo.email)) {
-      errors.email = 'البريد الإلكتروني غير صحيح';
-    }
+    const emailError = validateEmail(patientInfo.email);
+    if (emailError) errors.email = emailError;
     
-    if (!patientInfo.phone.trim()) {
-      errors.phone = 'رقم الهاتف مطلوب';
-    } else if (!validatePhone(patientInfo.phone)) {
-      errors.phone = 'رقم الهاتف غير صحيح (أدخل رقم مصري صحيح)';
-    }
+    const phoneError = validatePhone(patientInfo.phone);
+    if (phoneError) errors.phone = phoneError;
     
-    if (!patientInfo.age.trim()) {
-      errors.age = 'العمر مطلوب';
-    } else if (!validateAge(patientInfo.age)) {
-      errors.age = 'يجب أن يكون العمر بين 1 و 120';
-    }
+    const ageError = validateAge(patientInfo.age);
+    if (ageError) errors.age = ageError;
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  // دالة للتحقق من حقل واحد أثناء الكتابة (Real-time validation)
+  const validateField = (fieldName: keyof ValidationErrors, value: string) => {
+    let error: string | null = null;
+    
+    if (fieldName === 'name') {
+      error = validateName(value);
+    } else if (fieldName === 'email') {
+      error = validateEmail(value);
+    } else if (fieldName === 'phone') {
+      error = validatePhone(value);
+    } else if (fieldName === 'age') {
+      error = validateAge(value);
+    }
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [fieldName]: error || undefined
+    }));
   };
 
   // نظام التنقل بين الخطوات
@@ -477,7 +500,7 @@ export function BookingForm() {
           <div className="space-y-4">
             {/* الاسم */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2" style={{ direction: 'rtl' }}>
                 <User className="w-4 h-4" /> الاسم الكامل
               </label>
               <input 
@@ -486,24 +509,25 @@ export function BookingForm() {
                 value={patientInfo.name}
                 onChange={(e) => {
                   setPatientInfo({...patientInfo, name: e.target.value});
-                  setValidationErrors({...validationErrors, name: ''});
+                  validateField('name', e.target.value);
                 }}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition ${
+                onBlur={() => validateField('name', patientInfo.name)}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
                   validationErrors.name 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
               {validationErrors.name && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {validationErrors.name}
+                <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.name}
                 </p>
               )}
             </div>
 
             {/* البريد الإلكتروني */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2" style={{ direction: 'rtl' }}>
                 <Mail className="w-4 h-4" /> البريد الإلكتروني
               </label>
               <input 
@@ -512,24 +536,25 @@ export function BookingForm() {
                 value={patientInfo.email}
                 onChange={(e) => {
                   setPatientInfo({...patientInfo, email: e.target.value});
-                  setValidationErrors({...validationErrors, email: ''});
+                  validateField('email', e.target.value);
                 }}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition ${
+                onBlur={() => validateField('email', patientInfo.email)}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
                   validationErrors.email 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
               {validationErrors.email && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {validationErrors.email}
+                <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.email}
                 </p>
               )}
             </div>
 
             {/* رقم الهاتف */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2" style={{ direction: 'rtl' }}>
                 <Phone className="w-4 h-4" /> رقم الهاتف
               </label>
               <input 
@@ -538,25 +563,26 @@ export function BookingForm() {
                 value={patientInfo.phone}
                 onChange={(e) => {
                   setPatientInfo({...patientInfo, phone: e.target.value});
-                  setValidationErrors({...validationErrors, phone: ''});
+                  validateField('phone', e.target.value);
                 }}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition ${
+                onBlur={() => validateField('phone', patientInfo.phone)}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
                   validationErrors.phone 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
               {validationErrors.phone && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {validationErrors.phone}
+                <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.phone}
                 </p>
               )}
-              <p className="text-gray-500 text-xs mt-1">أدخل رقم هاتف مصري صحيح (مثل: 01001234567)</p>
+              <p className="text-gray-500 text-xs mt-2" style={{ direction: 'rtl' }}>أدخل رقم هاتف مصري صحيح (مثل: 01001234567 أو 201001234567)</p>
             </div>
 
             {/* العمر */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2" style={{ direction: 'rtl' }}>
                 <Calendar className="w-4 h-4" /> العمر
               </label>
               <input 
@@ -565,9 +591,10 @@ export function BookingForm() {
                 value={patientInfo.age}
                 onChange={(e) => {
                   setPatientInfo({...patientInfo, age: e.target.value});
-                  setValidationErrors({...validationErrors, age: ''});
+                  validateField('age', e.target.value);
                 }}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition ${
+                onBlur={() => validateField('age', patientInfo.age)}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
                   validationErrors.age 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
@@ -576,21 +603,21 @@ export function BookingForm() {
                 max="120"
               />
               {validationErrors.age && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {validationErrors.age}
+                <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.age}
                 </p>
               )}
             </div>
           </div>
 
           {/* ملخص الحجز */}
-          <div className="bg-gradient-to-br from-[#09b6ab]/5 to-[#07a89d]/5 border-2 border-[#09b6ab]/20 p-5 rounded-xl space-y-3">
+          <div className="bg-gradient-to-br from-[#09b6ab]/5 to-[#07a89d]/5 border-2 border-[#09b6ab]/20 p-5 rounded-xl space-y-3" style={{ direction: 'rtl' }}>
             <h3 className="font-semibold text-gray-900">ملخص الحجز</h3>
             <div className="space-y-2 text-sm">
-              <p className="flex justify-between"><span className="text-gray-600">الخدمة:</span> <strong>{selectedService}</strong></p>
-              <p className="flex justify-between"><span className="text-gray-600">الموقع:</span> <strong>{selectedLocation}</strong></p>
-              <p className="flex justify-between"><span className="text-gray-600">التاريخ:</span> <strong>{selectedDate}</strong></p>
-              <p className="flex justify-between"><span className="text-gray-600">الوقت:</span> <strong>{displayTime}</strong></p>
+              <p className="flex justify-between"><strong>{selectedService}</strong> <span className="text-gray-600">:الخدمة</span></p>
+              <p className="flex justify-between"><strong>{selectedLocation}</strong> <span className="text-gray-600">:الموقع</span></p>
+              <p className="flex justify-between"><strong>{selectedDate}</strong> <span className="text-gray-600">:التاريخ</span></p>
+              <p className="flex justify-between"><strong>{displayTime}</strong> <span className="text-gray-600">:الوقت</span></p>
             </div>
           </div>
 
@@ -640,12 +667,12 @@ export function BookingForm() {
             <p className="text-blue-700 text-sm"><strong>تم إرسال تفاصيل الحجز</strong> إلى البريد الإلكتروني:</p>
             <p className="text-blue-600 font-semibold mt-1">{patientInfo.email}</p>
           </div>
-          <div className="bg-gray-50 p-6 rounded-lg max-w-md mx-auto text-left space-y-2 text-sm">
+          <div className="bg-gray-50 p-6 rounded-lg max-w-md mx-auto space-y-2 text-sm" style={{ direction: 'rtl', textAlign: 'right' }}>
             <h3 className="font-bold text-gray-900 mb-3">ملخص الحجز</h3>
-            <p className="flex justify-between"><span className="text-gray-600">المريض:</span> <strong>{patientInfo.name}</strong></p>
-            <p className="flex justify-between"><span className="text-gray-600">الخدمة:</span> <strong>{selectedService}</strong></p>
-            <p className="flex justify-between"><span className="text-gray-600">التاريخ:</span> <strong>{selectedDate}</strong></p>
-            <p className="flex justify-between"><span className="text-gray-600">الوقت:</span> <strong>{displayTime}</strong></p>
+            <p className="flex justify-between"><strong>{patientInfo.name}</strong> <span className="text-gray-600">:المريض</span></p>
+            <p className="flex justify-between"><strong>{selectedService}</strong> <span className="text-gray-600">:الخدمة</span></p>
+            <p className="flex justify-between"><strong>{selectedDate}</strong> <span className="text-gray-600">:التاريخ</span></p>
+            <p className="flex justify-between"><strong>{displayTime}</strong> <span className="text-gray-600">:الوقت</span></p>
           </div>
           <button 
             onClick={() => window.location.reload()} 
