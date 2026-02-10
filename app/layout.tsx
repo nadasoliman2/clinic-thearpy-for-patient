@@ -1,7 +1,8 @@
 import React from "react"
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-
+import Navbar from "./_components/navbar"
+import Footer from "./_components/footer"
 import './globals.css'
 
 const _geist = Geist({ subsets: ['latin'] })
@@ -20,7 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <Navbar />
+        {children}
+        <Footer />
+      </body>
     </html>
   )
 }
+
