@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { AlertCircle, Loader2, Calendar, Clock, CheckCircle2 } from 'lucide-react'
+import { convertLocalToUTC, formatLocalTime } from '@/lib/time-utils'
 
 const API_BASE_URL = "http://localhost:3000"
 
@@ -85,7 +86,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
       const res = await fetch(
         `${API_BASE_URL}/api/bookings/${booking.bookingId}/reschedule`,
         {
-          method: 'POST',
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             newStartTime: data.selectedTime

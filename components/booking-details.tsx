@@ -18,12 +18,16 @@ export function BookingDetails({ booking, onReschedule, onBack }: BookingDetails
   const [cancelled, setCancelled] = useState(false)
 
   const handleCancel = async () => {
+    if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الحجز ${booking.bookingId}؟\n\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/bookings/${booking.bookingId}/cancel`, {
-        method: 'POST',
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${booking.bookingId}`, {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
       })
 
@@ -32,7 +36,7 @@ export function BookingDetails({ booking, onReschedule, onBack }: BookingDetails
       if (data.success) {
         setCancelled(true)
       } else {
-        setError(data.message || 'فشل إلغاء الحجز')
+        setError(data.message || data.error || 'فشل إلغاء الحجز')
       }
     } catch (err) {
       setError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى')
