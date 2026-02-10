@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 import { AlertCircle, Loader2, Calendar, Clock, CheckCircle2 } from 'lucide-react'
 
 const API_BASE_URL = "http://localhost:3000"
+
+interface RescheduleFormData {
+  selectedDate: string
+  selectedTime: string
+}
 
 interface RescheduleBookingProps {
   booking: any
@@ -11,18 +17,27 @@ interface RescheduleBookingProps {
 }
 
 export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('')
-  const [displayTime, setDisplayTime] = useState('')
   const [availableSlots, setAvailableSlots] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [serverError, setServerError] = useState<string | null>(null)
   const [rescheduled, setRescheduled] = useState(false)
+  const [displayTime, setDisplayTime] = useState('')
+
+  const { register, handleSubmit, watch, formState: { errors }, setValue } = useForm<RescheduleFormData>({
+    defaultValues: {
+      selectedDate: '',
+      selectedTime: ''
+    },
+    mode: 'onChange'
+  })
+
+  const selectedDate = watch('selectedDate')
+  const selectedTime = watch('selectedTime')
 
   const fetchSlots = async (date: string) => {
     setLoading(true)
-    setError(null)
-    setSelectedTime('')
+    setServerError(null)
+    setValue('selectedTime', '')
     setDisplayTime('')
 
     try {
@@ -32,7 +47,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
       )
 
       if (!res.ok) {
-        setError('فشل تحميل المواعيد المتاحة')
+        setServerError('فشل تحميل المواعيد المتاحة')
         return
       }
 
@@ -40,11 +55,11 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
       if (data.success) {
         setAvailableSlots(data.slots || [])
       } else {
-        setError('لا توجد مواعيد متاحة في هذا اليوم')
+        setServerError('لا توجد مواعيد متاحة في هذا اليوم')
         setAvailableSlots([])
       }
     } catch (err) {
-      setError('حدث خطأ أثناء تحميل المواعيد')
+      setServerError('حدث خطأ أثناء تحميل المواعيد')
     } finally {
       setLoading(false)
     }
@@ -52,20 +67,19 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = e.target.value
-    setSelectedDate(date)
     if (date) {
       fetchSlots(date)
     }
   }
 
-  const handleReschedule = async () => {
-    if (!selectedDate || !selectedTime) {
-      setError('يرجى اختيار التاريخ والوقت')
+  const onSubmit = async (data: RescheduleFormData) => {
+    if (!data.selectedDate || !data.selectedTime) {
+      setServerError('يرجى اختيار التاريخ والوقت')
       return
     }
 
     setLoading(true)
-    setError(null)
+    setServerError(null)
 
     try {
       const res = await fetch(
@@ -74,20 +88,20 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            newStartTime: selectedTime
+            newStartTime: data.selectedTime
           })
         }
       )
 
-      const data = await res.json()
+      const res_data = await res.json()
 
-      if (data.success) {
+      if (res_data.success) {
         setRescheduled(true)
       } else {
-        setError(data.message || 'فشلت إعادة جدولة الحجز')
+        setServerError(res_data.message || 'فشلت إعادة جدولة الحجز')
       }
     } catch (err) {
-      setError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى')
+      setServerError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى')
     } finally {
       setLoading(false)
     }
@@ -138,108 +152,133 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
         </div>
       </div>
 
-      {error && (
+      {serverError && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <p className="text-red-700 font-semibold mb-1 flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
             خطأ
           </p>
-          <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-red-600 text-sm">{serverError}</p>
         </div>
       )}
 
-      {/* Date Selection */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-3" style={{ direction: 'rtl' }}>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            اختر التاريخ الجديد
-          </div>
-        </label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={handleDateChange}
-          disabled={loading}
-          min={new Date().toISOString().split('T')[0]}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10 transition text-right disabled:opacity-50"
-        />
-      </div>
-
-      {/* Time Selection */}
-      {selectedDate && (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Date Selection */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-3" style={{ direction: 'rtl' }}>
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              اختر الوقت الجديد
+              <Calendar className="w-4 h-4" />
+              اختر التاريخ الجديد
             </div>
           </label>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="animate-spin w-8 h-8 text-[#09b6ab] mb-2" />
-              <p className="text-gray-600 text-sm">جاري تحميل المواعيد المتاحة...</p>
-            </div>
-          ) : availableSlots.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {availableSlots.map((slot) => {
-                const timeLabel = new Date(slot.startTime).toLocaleTimeString('ar-EG', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })
-                return (
-                  <button
-                    key={slot.startTime}
-                    onClick={() => {
-                      setSelectedTime(slot.startTime)
-                      setDisplayTime(timeLabel)
-                    }}
-                    className={`p-3 text-sm font-semibold rounded-lg border-2 transition transform hover:scale-105 ${
-                      selectedTime === slot.startTime
-                        ? 'bg-[#09b6ab] text-white border-[#09b6ab]'
-                        : 'border-gray-200 text-gray-900 hover:border-[#09b6ab]'
-                    }`}
-                  >
-                    {timeLabel}
-                  </button>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-              <p className="text-red-700 font-semibold mb-1">لا توجد مواعيد متاحة</p>
-              <p className="text-red-600 text-sm">يرجى اختيار تاريخاً آخر</p>
-            </div>
+          <input
+            type="date"
+            disabled={loading}
+            min={new Date().toISOString().split('T')[0]}
+            {...register('selectedDate', {
+              required: 'اختيار التاريخ مطلوب',
+              onChange: handleDateChange
+            })}
+            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right disabled:opacity-50 ${
+              errors.selectedDate
+                ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50'
+                : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
+            }`}
+          />
+          {errors.selectedDate && (
+            <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+              <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.selectedDate.message}
+            </p>
           )}
         </div>
-      )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-4">
-        <button
-          onClick={onBack}
-          disabled={loading}
-          className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-        >
-          رجوع
-        </button>
-        <button
-          onClick={handleReschedule}
-          disabled={loading || !selectedDate || !selectedTime}
-          className="flex-[2] px-6 py-3 bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              جاري المعالجة...
-            </>
-          ) : (
-            'تأكيد إعادة الجدولة'
-          )}
-        </button>
-      </div>
+        {/* Time Selection */}
+        {selectedDate && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3" style={{ direction: 'rtl' }}>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                اختر الوقت الجديد
+              </div>
+            </label>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="animate-spin w-8 h-8 text-[#09b6ab] mb-2" />
+                <p className="text-gray-600 text-sm">جاري تحميل المواعيد المتاحة...</p>
+              </div>
+            ) : availableSlots.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {availableSlots.map((slot) => {
+                  const timeLabel = new Date(slot.startTime).toLocaleTimeString('ar-EG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })
+                  return (
+                    <label key={slot.startTime} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        value={slot.startTime}
+                        {...register('selectedTime', {
+                          required: 'اختيار الوقت مطلوب'
+                        })}
+                        onChange={() => setDisplayTime(timeLabel)}
+                        className="hidden"
+                      />
+                      <div
+                        className={`p-3 text-sm font-semibold rounded-lg border-2 transition transform hover:scale-105 ${
+                          selectedTime === slot.startTime
+                            ? 'bg-[#09b6ab] text-white border-[#09b6ab]'
+                            : 'border-gray-200 text-gray-900 hover:border-[#09b6ab]'
+                        }`}
+                      >
+                        {timeLabel}
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <p className="text-red-700 font-semibold mb-1">لا توجد مواعيد متاحة</p>
+                <p className="text-red-600 text-sm">يرجى اختيار تاريخاً آخر</p>
+              </div>
+            )}
+            {errors.selectedTime && (
+              <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
+                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.selectedTime.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={loading}
+            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            رجوع
+          </button>
+          <button
+            type="submit"
+            disabled={loading || !selectedDate || !selectedTime}
+            className="flex-[2] px-6 py-3 bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                جاري المعالجة...
+              </>
+            ) : (
+              'تأكيد إعادة الجدولة'
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Clock, ChevronRight, CheckCircle2, AlertCircle, Loader2, Mail, Phone, User, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
@@ -15,42 +16,24 @@ interface Therapist {
   specialization: string;
 }
 
-interface ValidationErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
-  age?: string;
+interface PatientFormData {
+  name: string;
+  email: string;
+  phone: string;
+  age: string;
 }
 
 const STEPS = ['service', 'location', 'therapist', 'date', 'time', 'patient', 'confirmation'] as const;
 
-// دوال التحقق من الصحة مع رسائل الأخطاء
-const validateEmail = (email: string): string | null => {
-  if (!email.trim()) return 'البريد الإلكتروني مطلوب';
+// دوال التحقق من الصحة
+const validateEmailPattern = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return 'صيغة البريد الإلكتروني غير صحيحة (مثال: test@email.com)';
-  return null;
+  return emailRegex.test(email);
 };
 
-const validatePhone = (phone: string): string | null => {
-  if (!phone.trim()) return 'رقم الهاتف مطلوب';
+const validatePhonePattern = (phone: string): boolean => {
   const phoneRegex = /^(\+?20|0)?1[0-2]\d{8}$/;
-  if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'رقم الهاتف غير صحيح (مثال: 01001234567 أو 201001234567)';
-  return null;
-};
-
-const validateAge = (age: string): string | null => {
-  if (!age.trim()) return 'العمر مطلوب';
-  const ageNum = parseInt(age);
-  if (isNaN(ageNum)) return 'يجب إدخال رقم صحيح';
-  if (ageNum < 1 || ageNum > 120) return 'العمر يجب أن يكون بين 1 و 120 سنة';
-  return null;
-};
-
-const validateName = (name: string): string | null => {
-  if (!name.trim()) return 'الاسم مطلوب';
-  if (name.trim().length < 3) return 'الاسم يجب أن يكون 3 أحرف على الأقل';
-  return null;
+  return phoneRegex.test(phone.replace(/\s/g, ''));
 };
 
 interface BookingFormProps {
@@ -61,7 +44,6 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
   const [step, setStep] = useState<typeof STEPS[number]>('service')
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   // البيانات القادمة من الباك إيند
   const [services, setServices] = useState<any[]>([]);
@@ -74,11 +56,20 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedTherapist, setSelectedTherapist] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
-  const [selectedTime, setSelectedTime] = useState<string>('') // سنخزن فيها الـ UTC startTime
-  const [displayTime, setDisplayTime] = useState<string>('') // للوقت المحلي للعرض
-  
-  const [patientInfo, setPatientInfo] = useState({ name: '', email: '', phone: '', age: '' });
+  const [selectedTime, setSelectedTime] = useState<string>('')
+  const [displayTime, setDisplayTime] = useState<string>('')
   const [bookingId, setBookingId] = useState<string>('')
+
+  // استخدام react-hook-form
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<PatientFormData>({
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      age: ''
+    },
+    mode: 'onChange'
+  })
   
   // حساب رقم الخطوة الحالية
   const currentStepIndex = STEPS.indexOf(step);
@@ -130,46 +121,6 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
     }
   };
 
-  // دالة التحقق من بيانات المريض عند الضغط على الزر
-  const validatePatientInfo = (): boolean => {
-    const errors: ValidationErrors = {};
-    
-    const nameError = validateName(patientInfo.name);
-    if (nameError) errors.name = nameError;
-    
-    const emailError = validateEmail(patientInfo.email);
-    if (emailError) errors.email = emailError;
-    
-    const phoneError = validatePhone(patientInfo.phone);
-    if (phoneError) errors.phone = phoneError;
-    
-    const ageError = validateAge(patientInfo.age);
-    if (ageError) errors.age = ageError;
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // دالة للتحقق من حقل واحد أثناء الكتابة (Real-time validation)
-  const validateField = (fieldName: keyof ValidationErrors, value: string) => {
-    let error: string | null = null;
-    
-    if (fieldName === 'name') {
-      error = validateName(value);
-    } else if (fieldName === 'email') {
-      error = validateEmail(value);
-    } else if (fieldName === 'phone') {
-      error = validatePhone(value);
-    } else if (fieldName === 'age') {
-      error = validateAge(value);
-    }
-    
-    setValidationErrors(prev => ({
-      ...prev,
-      [fieldName]: error || undefined
-    }));
-  };
-
   // نظام التنقل بين الخطوات
   const handleNextStep = async () => {
     setError(null);
@@ -194,17 +145,11 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
     if (currentIndex > 0) {
       setStep(STEPS[currentIndex - 1]);
       setError(null);
-      setValidationErrors({});
     }
   };
 
-  // 4. تأكيد الحجز النهائي (POST)
-  const handleConfirmBooking = async () => {
-    if (!validatePatientInfo()) {
-      setError('يرجى تصحيح جميع الأخطاء قبل المتابعة');
-      return;
-    }
-
+  // تأكيد الحجز النهائي
+  const handleConfirmBooking = async (data: PatientFormData) => {
     setLoading(true);
     setError(null);
     try {
@@ -212,11 +157,11 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
         therapistId: selectedTherapist,
         service: selectedService,
         location: selectedLocation,
-        patientName: patientInfo.name,
-        patientEmail: patientInfo.email,
-        patientPhone: patientInfo.phone,
-        patientAge: parseInt(patientInfo.age),
-        startTime: selectedTime // الـ UTC الذي اخترناه
+        patientName: data.name,
+        patientEmail: data.email,
+        patientPhone: data.phone,
+        patientAge: parseInt(data.age),
+        startTime: selectedTime
       };
 
       const res = await fetch(`${API_BASE_URL}/api/bookings`, {
@@ -224,13 +169,13 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const res_data = await res.json();
 
-      if (data.success) {
-        setBookingId(data.booking.bookingId);
+      if (res_data.success) {
+        setBookingId(res_data.booking.bookingId);
         setStep('confirmation');
       } else {
-        setError(data.message || "فشل الحجز. يرجى المحاولة مرة أخرى");
+        setError(res_data.message || "فشل الحجز. يرجى المحاولة مرة أخرى");
       }
     } catch (err) {
       setError("حدث خطأ أثناء إتمام الحجز. يرجى التحقق من الاتصال بالإنترنت");
@@ -410,9 +355,10 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
             <label className="block text-sm font-semibold text-gray-700 mb-2">التاريخ</label>
             <input 
               type="date" 
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10"
+              value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10"
             />
           </div>
           <div className="flex gap-3">
@@ -495,7 +441,7 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
 
       {/* الخطوة 6: بيانات المريض */}
       {step === 'patient' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+        <form onSubmit={handleSubmit(handleConfirmBooking)} className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">بيانات المريض</h2>
             <p className="text-gray-600 text-sm">يرجى إدخال بيانات صحيحة للتواصل معك</p>
@@ -510,21 +456,22 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               <input 
                 type="text" 
                 placeholder="أحمد محمد علي" 
-                value={patientInfo.name}
-                onChange={(e) => {
-                  setPatientInfo({...patientInfo, name: e.target.value});
-                  validateField('name', e.target.value);
-                }}
-                onBlur={() => validateField('name', patientInfo.name)}
+                {...register('name', {
+                  required: 'الاسم مطلوب',
+                  minLength: {
+                    value: 3,
+                    message: 'الاسم يجب أن يكون 3 أحرف على الأقل'
+                  }
+                })}
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
-                  validationErrors.name 
+                  errors.name 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
-              {validationErrors.name && (
+              {errors.name && (
                 <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.name}
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.name.message}
                 </p>
               )}
             </div>
@@ -537,21 +484,19 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               <input 
                 type="email" 
                 placeholder="example@email.com" 
-                value={patientInfo.email}
-                onChange={(e) => {
-                  setPatientInfo({...patientInfo, email: e.target.value});
-                  validateField('email', e.target.value);
-                }}
-                onBlur={() => validateField('email', patientInfo.email)}
+                {...register('email', {
+                  required: 'البريد الإلكتروني مطلوب',
+                  validate: (value) => validateEmailPattern(value) || 'صيغة البريد الإلكتروني غير صحيحة (مثال: test@email.com)'
+                })}
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
-                  validationErrors.email 
+                  errors.email 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
-              {validationErrors.email && (
+              {errors.email && (
                 <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.email}
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.email.message}
                 </p>
               )}
             </div>
@@ -564,21 +509,19 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               <input 
                 type="tel" 
                 placeholder="01001234567" 
-                value={patientInfo.phone}
-                onChange={(e) => {
-                  setPatientInfo({...patientInfo, phone: e.target.value});
-                  validateField('phone', e.target.value);
-                }}
-                onBlur={() => validateField('phone', patientInfo.phone)}
+                {...register('phone', {
+                  required: 'رقم الهاتف مطلوب',
+                  validate: (value) => validatePhonePattern(value) || 'رقم الهاتف غير صحيح (مثال: 01001234567 أو 201001234567)'
+                })}
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
-                  validationErrors.phone 
+                  errors.phone 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
               />
-              {validationErrors.phone && (
+              {errors.phone && (
                 <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.phone}
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.phone.message}
                 </p>
               )}
               <p className="text-gray-500 text-xs mt-2" style={{ direction: 'rtl' }}>أدخل رقم هاتف مصري صحيح (مثل: 01001234567 أو 201001234567)</p>
@@ -592,23 +535,28 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               <input 
                 type="number" 
                 placeholder="25" 
-                value={patientInfo.age}
-                onChange={(e) => {
-                  setPatientInfo({...patientInfo, age: e.target.value});
-                  validateField('age', e.target.value);
-                }}
-                onBlur={() => validateField('age', patientInfo.age)}
+                {...register('age', {
+                  required: 'العمر مطلوب',
+                  min: {
+                    value: 1,
+                    message: 'العمر يجب أن يكون على الأقل 1'
+                  },
+                  max: {
+                    value: 120,
+                    message: 'العمر يجب أن يكون 120 على الأكثر'
+                  }
+                })}
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition text-right ${
-                  validationErrors.age 
+                  errors.age 
                     ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' 
                     : 'border-gray-200 focus:border-[#09b6ab] focus:ring-2 focus:ring-[#09b6ab]/10'
                 }`}
                 min="1"
                 max="120"
               />
-              {validationErrors.age && (
+              {errors.age && (
                 <p className="text-red-600 text-sm mt-2 flex items-center gap-1" style={{ direction: 'rtl' }}>
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {validationErrors.age}
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.age.message}
                 </p>
               )}
             </div>
@@ -627,6 +575,7 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
 
           <div className="flex gap-3 pt-4">
             <button 
+              type="button"
               onClick={handleGoBack} 
               disabled={loading}
               className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
@@ -634,7 +583,7 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               رجوع
             </button>
             <button 
-              onClick={handleConfirmBooking} 
+              type="submit"
               disabled={loading}
               className="flex-[2] px-6 py-3 bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
@@ -648,9 +597,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
               )}
             </button>
           </div>
-        </div>
+        </form>
       )}
-
 
       {/* شاشة النجاح */}
       {step === 'confirmation' && (
@@ -669,14 +617,7 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
           </div>
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg max-w-md mx-auto">
             <p className="text-blue-700 text-sm"><strong>تم إرسال تفاصيل الحجز</strong> إلى البريد الإلكتروني:</p>
-            <p className="text-blue-600 font-semibold mt-1">{patientInfo.email}</p>
-          </div>
-          <div className="bg-gray-50 p-6 rounded-lg max-w-md mx-auto space-y-2 text-sm" style={{ direction: 'rtl', textAlign: 'right' }}>
-            <h3 className="font-bold text-gray-900 mb-3">ملخص الحجز</h3>
-            <p className="flex justify-between"><strong>{patientInfo.name}</strong> <span className="text-gray-600">:المريض</span></p>
-            <p className="flex justify-between"><strong>{selectedService}</strong> <span className="text-gray-600">:الخدمة</span></p>
-            <p className="flex justify-between"><strong>{selectedDate}</strong> <span className="text-gray-600">:التاريخ</span></p>
-            <p className="flex justify-between"><strong>{displayTime}</strong> <span className="text-gray-600">:الوقت</span></p>
+            <p className="text-blue-600 font-semibold mt-1" dir="ltr">{watch('email')}</p>
           </div>
           <button 
             onClick={() => onBackToMain ? onBackToMain() : window.location.reload()} 
