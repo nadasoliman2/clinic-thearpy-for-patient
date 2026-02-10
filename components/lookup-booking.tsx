@@ -61,11 +61,8 @@ export function LookupBooking({ onBookingFound, onBack }: LookupBookingProps) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2" dir="rtl">
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Search className="w-8 h-8 text-[#09b6ab]" />
-          <h2 className="text-3xl font-bold text-gray-900">البحث عن حجزك</h2>
-        </div>
-        <p className="text-gray-600">أدخل رقم الحجز لعرض تفاصيل موعدك</p>
+        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">ابحث عن موعدك</h2>
+        <p className="text-gray-600 text-lg">أدخل رقم الحجز لعرض التفاصيل والخيارات المتاحة</p>
       </div>
 
       {serverError && (

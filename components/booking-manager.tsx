@@ -49,40 +49,45 @@ export function BookingManager() {
     setBookingState({})
   }
 
+  const handleBookNewAppointment = () => {
+    setBookingState({})
+    setCurrentView('new-booking')
+  }
+
   return (
     <section id="booking" className="py-20 md:py-24">
       <div className="max-w-7xl mx-auto px-4">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border">
           {/* Header - Changes based on current view */}
-          <div className="bg-[#09b6ab] p-8 md:p-12 text-white">
+          <div className="bg-gradient-to-r from-[#09b6ab] to-[#07a89d] p-8 md:p-12 text-white">
             {currentView === 'main' && (
               <>
-                <h2 className="text-4xl font-bold mb-3">Book Your Session</h2>
-                <p className="text-white/90 text-lg">Choose an option to manage your appointments</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-3 text-balance">احجز جلستك الآن</h2>
+                <p className="text-white/90 text-lg">اختر خياراً لإدارة مواعيدك</p>
               </>
             )}
             {currentView === 'new-booking' && (
               <>
-                <h2 className="text-4xl font-bold mb-3">Book a New Session</h2>
-                <p className="text-white/90 text-lg">Select your date first to see available times</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-3 text-balance">حجز موعد جديد</h2>
+                <p className="text-white/90 text-lg">اختر التاريخ أولاً لعرض الأوقات المتاحة</p>
               </>
             )}
             {currentView === 'lookup' && (
               <>
-                <h2 className="text-4xl font-bold mb-3">Look Up Existing Booking</h2>
-                <p className="text-white/90 text-lg">Enter your booking details to manage your appointment</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-3 text-balance">البحث عن حجزك</h2>
+                <p className="text-white/90 text-lg">أدخل بيانات حجزك لإدارة موعدك</p>
               </>
             )}
             {currentView === 'details' && (
               <>
-                <h2 className="text-4xl font-bold mb-3">Appointment Details</h2>
-                <p className="text-white/90 text-lg">View and manage your booking</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-3 text-balance">تفاصيل الموعد</h2>
+                <p className="text-white/90 text-lg">عرض وإدارة حجزك</p>
               </>
             )}
             {currentView === 'reschedule' && (
               <>
-                <h2 className="text-4xl font-bold mb-3">Reschedule Your Appointment</h2>
-                <p className="text-white/90 text-lg">Choose a new date and time</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-3 text-balance">إعادة جدولة الموعد</h2>
+                <p className="text-white/90 text-lg">اختر تاريخاً ووقتاً جديداً</p>
               </>
             )}
           </div>
@@ -161,6 +166,7 @@ export function BookingManager() {
               <RescheduleBooking
                 booking={bookingState.booking}
                 onBack={handleBackToMain}
+                onBookNew={handleBookNewAppointment}
               />
             )}
           </div>

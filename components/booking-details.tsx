@@ -52,8 +52,8 @@ export function BookingDetails({ booking, onReschedule, onBack }: BookingDetails
           <AlertCircle className="w-14 h-14 text-red-600" />
         </div>
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">تم إلغاء الحجز</h2>
-          <p className="text-gray-600">تم إلغاء موعدك بنجاح</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 text-balance">تم إلغاء الحجز</h2>
+          <p className="text-gray-600 text-lg">تم إلغاء موعدك بنجاح</p>
         </div>
         <button
           onClick={onBack}
@@ -68,8 +68,8 @@ export function BookingDetails({ booking, onReschedule, onBack }: BookingDetails
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2" dir="rtl">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">تفاصيل حجزك</h2>
-        <p className="text-gray-600">معلومات موعدك وخيارات الإدارة</p>
+        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">تفاصيل حجزك</h2>
+        <p className="text-gray-600 text-lg">معلومات موعدك والخيارات المتاحة لإدارته</p>
       </div>
 
       {error && (

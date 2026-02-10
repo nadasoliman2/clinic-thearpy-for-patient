@@ -15,9 +15,10 @@ interface RescheduleFormData {
 interface RescheduleBookingProps {
   booking: any
   onBack: () => void
+  onBookNew?: () => void
 }
 
-export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
+export function RescheduleBooking({ booking, onBack, onBookNew }: RescheduleBookingProps) {
   const [availableSlots, setAvailableSlots] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -122,8 +123,8 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
           <CheckCircle2 className="w-14 h-14 text-green-600" />
         </div>
         <div>
-          <h2 className="text-3xl font-bold text-green-700 mb-2">تم إعادة جدولة الحجز</h2>
-          <p className="text-gray-600">تم تحديث موعدك بنجاح</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-green-700 mb-2 text-balance">تم تحديث الموعد بنجاح</h2>
+          <p className="text-gray-600 text-lg">تم حفظ موعدك الجديد</p>
         </div>
         <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg max-w-md mx-auto">
           <p className="text-green-700 font-semibold mb-2">معلومات الموعد الجديد:</p>
@@ -145,8 +146,8 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2" dir="rtl">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">إعادة جدولة الحجز</h2>
-        <p className="text-gray-600">اختر موعداً جديداً لحجزك (الخدمة والمعالج سيبقى كما هو)</p>
+        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر موعداً جديداً</h2>
+        <p className="text-gray-600 text-lg">الخدمة والمعالج سيبقيان كما هما</p>
       </div>
 
       {/* Current Appointment Info */}
@@ -259,7 +260,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-4 flex-col md:flex-row">
           <button
             type="button"
             onClick={onBack}
@@ -268,10 +269,20 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
           >
             رجوع
           </button>
+          {onBookNew && (
+            <button
+              type="button"
+              onClick={onBookNew}
+              disabled={loading}
+              className="flex-1 px-6 py-3 border-2 border-[#09b6ab] text-[#09b6ab] font-semibold rounded-lg hover:bg-[#09b6ab]/5 transition disabled:opacity-50"
+            >
+              حجز موعد جديد
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading || !selectedDate || !selectedTime}
-            className="flex-[2] px-6 py-3 bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-6 py-3 bg-[#09b6ab] hover:bg-[#07a89d] text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

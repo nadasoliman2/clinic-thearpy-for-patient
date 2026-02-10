@@ -226,8 +226,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'service' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">اختر الخدمة المطلوبة</h2>
-            <p className="text-gray-600 text-sm">حدد الخدمة التي تريد حجز موعد لها</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر الخدمة</h2>
+            <p className="text-gray-600 text-lg">حدد الخدمة التي تريد حجز موعد لها</p>
           </div>
           <div className="grid grid-cols-1 gap-3">
             {services.map((s) => (
@@ -259,8 +259,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'location' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">اختر الموقع</h2>
-            <p className="text-gray-600 text-sm">حدد المقر الذي تفضل الحضور إليه</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر الموقع</h2>
+            <p className="text-gray-600 text-lg">حدد المقر الذي تفضل الحضور إليه</p>
           </div>
           <div className="grid grid-cols-1 gap-3">
             {locations.map((loc) => (
@@ -299,8 +299,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'therapist' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">اختر المعالج</h2>
-            <p className="text-gray-600 text-sm">حدد المعالج الفيزيائي المفضل لك</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر المعالج</h2>
+            <p className="text-gray-600 text-lg">حدد المعالج الفيزيائي المفضل لك</p>
           </div>
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -348,8 +348,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'date' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">اختر التاريخ المناسب</h2>
-            <p className="text-gray-600 text-sm">حدد اليوم الذي تفضل حجز الموعد فيه</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر التاريخ</h2>
+            <p className="text-gray-600 text-lg">حدد اليوم الذي تفضل حجز الموعد فيه</p>
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">التاريخ</label>
@@ -383,8 +383,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'time' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">اختر الوقت المناسب</h2>
-            <p className="text-gray-600 text-sm">المواعيد المتاحة بتوقيت القاهرة</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">اختر الوقت</h2>
+            <p className="text-gray-600 text-lg">المواعيد المتاحة بتوقيت القاهرة</p>
           </div>
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
@@ -443,8 +443,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
       {step === 'patient' && (
         <form onSubmit={handleSubmit(handleConfirmBooking)} className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">بيانات المريض</h2>
-            <p className="text-gray-600 text-sm">يرجى إدخال بيانات صحيحة للتواصل معك</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 text-balance">أكمل البيانات</h2>
+            <p className="text-gray-600 text-lg">يرجى إدخال بيانات صحيحة للتواصل معك</p>
           </div>
 
           <div className="space-y-4">
@@ -607,8 +607,8 @@ export function BookingForm({ onBackToMain }: BookingFormProps = {}) {
             <CheckCircle2 className="w-14 h-14 text-green-600" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-green-700 mb-2">تم الحجز بنجاح!</h2>
-            <p className="text-gray-600">شكراً لاختيارك عيادتنا</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-green-700 mb-2 text-balance">تم الحجز بنجاح!</h2>
+            <p className="text-gray-600 text-lg">شكراً لاختيارك عيادتنا</p>
           </div>
           <div className="bg-gradient-to-br from-[#09b6ab]/10 to-[#07a89d]/5 border-2 border-[#09b6ab]/30 p-8 rounded-xl inline-block max-w-md mx-auto w-full">
             <p className="text-gray-600 mb-3 text-sm">رقم الحجز الخاص بك</p>
