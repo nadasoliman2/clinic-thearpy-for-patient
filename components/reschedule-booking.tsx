@@ -9,7 +9,7 @@ const API_BASE_URL = "http://localhost:3000"
 
 interface RescheduleFormData {
   selectedDate: string
-  selectedTime: string
+  selectedTime: string // This will be the time in HH:MM format
 }
 
 interface RescheduleBookingProps {
@@ -43,7 +43,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
 
     try {
       const res = await fetch(
-        `${API_BASE_URL}/api/slots?date=${date}&therapistId=${booking.therapistId}`,
+        `${API_BASE_URL}/api/availability/slots?date=${date}&therapistId=${booking.therapistId}`,
         { method: 'GET' }
       )
 
@@ -53,10 +53,14 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
       }
 
       const data = await res.json()
+      
       if (data.success) {
         setAvailableSlots(data.slots || [])
+        if (!data.slots || data.slots.length === 0) {
+          setServerError('لا توجد مواعيد متاحة في هذا اليوم')
+        }
       } else {
-        setServerError('لا توجد مواعيد متاحة في هذا اليوم')
+        setServerError(data.message || 'لا توجد مواعيد متاحة في هذا اليوم')
         setAvailableSlots([])
       }
     } catch (err) {
@@ -83,13 +87,16 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
     setServerError(null)
 
     try {
+      // تحويل التاريخ والوقت المحليين إلى UTC
+      const newStartTimeUTC = convertLocalToUTC(data.selectedDate, data.selectedTime)
+
       const res = await fetch(
         `${API_BASE_URL}/api/bookings/${booking.bookingId}/reschedule`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            newStartTime: data.selectedTime
+            newStartTime: newStartTimeUTC
           })
         }
       )
@@ -99,7 +106,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
       if (res_data.success) {
         setRescheduled(true)
       } else {
-        setServerError(res_data.message || 'فشلت إعادة جدولة الحجز')
+        setServerError(res_data.message || res_data.error || 'فشلت إعادة جدولة الحجز')
       }
     } catch (err) {
       setServerError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى')
@@ -211,16 +218,23 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
             ) : availableSlots.length > 0 ? (
               <div className="grid grid-cols-3 gap-2">
                 {availableSlots.map((slot) => {
-                  const timeLabel = new Date(slot.startTime).toLocaleTimeString('ar-EG', {
+                  // slot.startTime يأتي بصيغة ISO string (UTC)
+                  // نحتاج استخراج الوقت بصيغة HH:MM فقط
+                  const slotDate = new Date(slot.startTime)
+                  const timeInHHMM = `${String(slotDate.getUTCHours()).padStart(2, '0')}:${String(slotDate.getUTCMinutes()).padStart(2, '0')}`
+                  
+                  const timeLabel = slotDate.toLocaleTimeString('ar-EG', {
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: true,
+                    timeZone: 'Africa/Cairo'
                   })
+                  
                   return (
                     <label key={slot.startTime} className="cursor-pointer">
                       <input
                         type="radio"
-                        value={slot.startTime}
+                        value={timeInHHMM}
                         {...register('selectedTime', {
                           required: 'اختيار الوقت مطلوب'
                         })}
@@ -229,7 +243,7 @@ export function RescheduleBooking({ booking, onBack }: RescheduleBookingProps) {
                       />
                       <div
                         className={`p-3 text-sm font-semibold rounded-lg border-2 transition transform hover:scale-105 ${
-                          selectedTime === slot.startTime
+                          selectedTime === timeInHHMM
                             ? 'bg-[#09b6ab] text-white border-[#09b6ab]'
                             : 'border-gray-200 text-gray-900 hover:border-[#09b6ab]'
                         }`}
