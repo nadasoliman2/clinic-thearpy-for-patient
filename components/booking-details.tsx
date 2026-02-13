@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2, Calendar, Clock, User, Phone, Mail } from 'lucide-react'
 
-const API_BASE_URL = "http://localhost:3000"
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? window.location.origin 
+  : 'http://localhost:3000'
 
 interface BookingDetailsProps {
   booking: any
