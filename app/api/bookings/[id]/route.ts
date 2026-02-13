@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
 export async function GET(_: Request, { params }: any) {
   const { id } = params
 
   try {
-    const res = await fetch(`${API_BASE_URL}/bookings/${id}`, {
-      cache: 'no-store'
-    })
+    const res = await fetch(`http://localhost:3000/bookings/${id}`)
     if (!res.ok) throw new Error('Booking not found')
     const data = await res.json()
     return NextResponse.json(data)
@@ -21,7 +17,7 @@ export async function DELETE(_: Request, { params }: any) {
   const { id } = params
 
   try {
-    const res = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+    const res = await fetch(`http://localhost:3000/bookings/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
     })

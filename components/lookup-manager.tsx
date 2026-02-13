@@ -1,13 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { AlertCircle, Loader2, Search, ArrowRight } from 'lucide-react'
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? window.location.origin 
-  : 'http://localhost:3000'
+const API_BASE_URL = "http://localhost:3000"
 
 interface LookupFormData {
   bookingId: string
@@ -50,18 +47,15 @@ export function LookupBooking({ onBookingFound, onBack }: LookupBookingProps) {
       }
 
       const data_res = await res.json()
-      console.log('[v0] API Response:', data_res)
-      if (data_res.success || data_res.booking) {
-        console.log('[v0] Booking found, navigating to:', data.bookingId)
-        console.log('[v0] Router push starting to:', `/booking/${data.bookingId}`)
-        // توجيه مباشر إلى صفحة التفاصيل مع ID في الـ URL
-        router.push(`/booking/${data.bookingId}`)
-        console.log('[v0] Router push completed')
+      if (data_res.success) {
+        console.log(
+          data_res
+        )
+        onBookingFound(data_res.booking)
       } else {
         setServerError(data_res.message || 'فشل البحث عن الحجز')
       }
     } catch (err) {
-      console.log('[v0] Error searching for booking:', err)
       setServerError('حدث خطأ في الاتصال. يرجى التحقق من الإنترنت')
     } finally {
       setLoading(false)
