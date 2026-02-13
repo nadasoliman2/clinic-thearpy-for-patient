@@ -50,10 +50,13 @@ export function LookupBooking({ onBookingFound, onBack }: LookupBookingProps) {
       }
 
       const data_res = await res.json()
+      console.log('[v0] API Response:', data_res)
       if (data_res.success || data_res.booking) {
         console.log('[v0] Booking found, navigating to:', data.bookingId)
+        console.log('[v0] Router push starting to:', `/booking/${data.bookingId}`)
         // توجيه مباشر إلى صفحة التفاصيل مع ID في الـ URL
         router.push(`/booking/${data.bookingId}`)
+        console.log('[v0] Router push completed')
       } else {
         setServerError(data_res.message || 'فشل البحث عن الحجز')
       }
