@@ -16,7 +16,6 @@ interface LookupBookingProps {
 }
 
 export function LookupBooking({ onBookingFound, onBack }: LookupBookingProps) {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
