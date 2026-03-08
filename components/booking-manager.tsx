@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { BookingForm } from './booking-form'
 import { LookupBooking } from './lookup-manager'
 import { BookingDetails } from './booking-details'
 import { RescheduleBooking } from './reschedule-booking'
 import { Calendar, RefreshCw } from 'lucide-react'
 
+import Link from 'next/link'
 type ViewType = 'main' | 'new-booking' | 'lookup' | 'details' | 'reschedule'
 
 interface BookingState {
@@ -17,9 +18,8 @@ export function BookingManager() {
   const [currentView, setCurrentView] = useState<ViewType>('main')
   const [bookingState, setBookingState] = useState<BookingState>({})
 
-  const handleNewBooking = () => {
-    setCurrentView('new-booking')
-  }
+
+ 
 
   const handleLookupClick = () => {
     setCurrentView('lookup')
@@ -55,7 +55,7 @@ export function BookingManager() {
   }
 
   return (
-    <section id="booking" className="py-20 md:py-24">
+    <section id="booking" className="py-16 md:py-20">
       <div className="max-w-5xl mx-auto px-4">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-border">
           {/* Header - Changes based on current view */}
@@ -74,14 +74,14 @@ export function BookingManager() {
             )}
             {currentView === 'lookup' && (
               <>
-                <h2 className=" font-bold mb-3 text-balance"dir='rtl'>البحث عن حجزك</h2>
-                <p className="text-white/90 text-lg"dir='rtl'>أدخل بيانات حجزك لإدارة موعدك</p>
+                {/* <h2 className=" font-bold mb-3 text-balance"dir='rtl'>البحث عن حجزك</h2> */}
+                {/* <h2 className="font-semibold  text-balance text-lg text-center"dir='rtl'>أدخل بيانات حجزك لإدارة موعدك</h2> */}
               </>
             )}
             {currentView === 'details' && (
               <>
-                <h2 className=" font-bold mb-3 text-balance" dir='rtl'>تفاصيل الموعد</h2>
-                <p className="text-white/90 text-lg" dir='rtl'>عرض وإدارة حجزك</p>
+                {/* <h2 className=" font-bold mb-3 text-balance" dir='rtl'>تفاصيل الحجز</h2>
+                <p className="text-white/90 text-lg" dir='rtl'>أدخل رقم الحجز لعرض تفاصيل موعدك</p> */}
               </>
             )}
             {currentView === 'reschedule' && (
@@ -93,7 +93,7 @@ export function BookingManager() {
           </div>
 
           {/* Content */}
-          <div className="p-8 md:p-12">
+          <div className="p-6 md:p-12">
             {/* Main Menu */}
             {currentView === 'main' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2" dir="rtl">
@@ -102,11 +102,13 @@ export function BookingManager() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
+                 
                   {/* New Booking Card */}
                   <button
-                    onClick={handleNewBooking}
+                    
                     className="p-8 rounded-xl border-2 border-gray-200 hover:border-[#09b6ab] hover:bg-[#09b6ab]/5 transition transform hover:scale-105 text-right"
                   >
+ <Link href={'/booking/new'}>
                     <div className="flex items-start gap-4 mb-4">
                       <div className="bg-[#09b6ab]/10 p-3 rounded-lg">
                         <Calendar className="w-6 h-6 text-[#09b6ab]" />
@@ -116,6 +118,7 @@ export function BookingManager() {
                         <p className="text-gray-600 text-sm mt-1">اختر خدمة جديدة وحدد موعداً</p>
                       </div>
                     </div>
+                </Link>
                   </button>
 
                   {/* Manage Booking Card */}
@@ -137,12 +140,6 @@ export function BookingManager() {
               </div>
             )}
 
-            {/* New Booking View */}
-            {currentView === 'new-booking' && (
-              <>
-                <BookingForm onBackToMain={handleBackToMain} />
-              </>
-            )}
 
             {/* Lookup View */}
             {currentView === 'lookup' && (
@@ -154,6 +151,7 @@ export function BookingManager() {
 
             {/* Details View */}
             {currentView === 'details' && bookingState.booking && (
+         
               <BookingDetails
                 booking={bookingState.booking}
                 onReschedule={handleRescheduleBooking}

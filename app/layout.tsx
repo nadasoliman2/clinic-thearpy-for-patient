@@ -1,12 +1,14 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+
 import Navbar from "./_components/navbar"
 import Footer from "./_components/footer"
 import './globals.css'
+import { Cairo, Tajawal } from 'next/font/google'
 
-const _geist = Geist({ subsets: ['latin'] })
-const _geistMono = Geist_Mono({ subsets: ['latin'] })
+
+const _cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-cairo' })
+const _tajawal = Tajawal({ subsets: ['arabic', 'latin'], weight: ['400', '500', '700', '800'], variable: '--font-tajawal' })
 
 export const metadata: Metadata = {
   title: 'Physical-thearpy-clinic',
@@ -21,7 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+    <body 
+        suppressHydrationWarning={true} 
+        /* لاحظي المسافة المضافة قبل font-sans 👇 */
+        className={`${_cairo.variable} ${_tajawal.variable} font-sans antialiased`}
+      >  
         <Navbar />
         {children}
         <Footer />

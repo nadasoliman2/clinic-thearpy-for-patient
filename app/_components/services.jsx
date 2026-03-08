@@ -11,11 +11,11 @@ import {
 import { motion } from "framer-motion"
 
 const services = [
-  { title: "Muscle Strength Assessment", icon: Dumbbell },
-  { title: "Gait & Movement Analysis", icon: Footprints },
-  { title: "Hydrotherapy", icon: Waves },
-  { title: "Relaxation & Recovery", icon: HeartPulse },
-  { title: "Home Visit Therapy", icon: House },
+  { title: "تقييم قوة العضلات", icon: Dumbbell },
+  { title: "تحليل المشي والحركة", icon: Footprints },
+  { title: "العلاج المائي", icon: Waves },
+  { title: "الاسترخاء والاستشفاء", icon: HeartPulse },
+  { title: "جلسات علاجية منزلية", icon: House },
 ]
 
 /* ✨ animation variants */
@@ -23,7 +23,7 @@ const container = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.15, // 👈 تدخل واحدة واحدة
+      staggerChildren: 0.15,
     },
   },
 }
@@ -44,22 +44,23 @@ const card = {
 
 export default function Services() {
   return (
-    <section id="services" className="bg-secondary/40 py-20 ">
+    // تم إضافة dir="rtl" لضمان تنسيق اللغة العربية بشكل صحيح
+    <section id="services" dir="rtl" className="bg-secondary/40 py-20 font-sans">
       <div className="max-w-7xl mx-auto px-4">
 
-        {/* Heading */}
+        {/* العنوان */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground">
-            Services
+          الخدمات
           </h2>
         </div>
 
-        {/* ✅ Animated Grid */}
+        {/* ✅ شبكة الخدمات المتحركة */}
         <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true }} // يظهر مرة واحدة بس
+          viewport={{ once: true }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {services.map((service, index) => {
@@ -69,16 +70,16 @@ export default function Services() {
               <motion.div
                 key={index}
                 variants={card}
-                whileHover={{ y: -6 }} // hover حركة بسيطة
-                className="group flex items-center gap-5 p-6 rounded-2xl border border-border bg-white hover:border-[#09b6ab] hover:shadow-lg transition"
+                whileHover={{ y: -6 }}
+                className="group flex items-center gap-5 p-6 rounded-2xl border border-border bg-white hover:border-[#09b6ab] hover:shadow-lg transition cursor-pointer"
               >
-                {/* Icon */}
-                <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-[#09b6ab]/10 group-hover:bg-[#09b6ab] transition">
+                {/* الأيقونة */}
+                <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-xl bg-[#09b6ab]/10 group-hover:bg-[#09b6ab] transition">
                   <Icon className="w-7 h-7 text-[#09b6ab] group-hover:text-white transition" />
                 </div>
 
-                {/* Text */}
-                <h3 className="text-lg font-semibold text-foreground">
+                {/* النص */}
+                <h3 className="text-lg font-semibold text-foreground text-right">
                   {service.title}
                 </h3>
               </motion.div>

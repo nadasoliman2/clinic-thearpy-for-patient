@@ -67,7 +67,7 @@ export function LookupBooking({ onBookingFound, onBack }: LookupBookingProps) {
         <div className="flex items-center justify-center gap-2 mb-4">
 
         </div>
-        <p className="text-gray-600">أدخل رقم الحجز لعرض تفاصيل موعدك</p>
+        {/* <p className="text-gray-600">أدخل رقم الحجز لعرض تفاصيل موعدك</p> */}
       </div>
 
       {serverError && (

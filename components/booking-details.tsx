@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2, Calendar, Clock, User, Phone, Mail } from 'lucide-react'
 
-const API_BASE_URL = "http://localhost:3000"
+const API_BASE_URL ='http://localhost:3000'
 
 interface BookingDetailsProps {
   booking: any
@@ -16,10 +16,8 @@ export function BookingDetails({ booking, onReschedule, onBack }: BookingDetails
   const [error, setError] = useState<string | null>(null)
   const [cancelConfirm, setCancelConfirm] = useState(false)
   const [cancelled, setCancelled] = useState(false)
-console.log(booking)
-const handleCancel = async () => {
-    // حذفنا سطر الـ if (confirm) من هنا لأننا بنستخدم UI مخصص للتأكيد
-    
+
+  const handleCancel = async () => {
     setLoading(true)
     setError(null)
 
@@ -35,7 +33,7 @@ const handleCancel = async () => {
         setCancelled(true)
       } else {
         setError(data.message || data.error || 'فشل إلغاء الحجز')
-        setCancelConfirm(false) // نرجع الزراير العادية لو حصل فشل
+        setCancelConfirm(false)
       }
     } catch (err) {
       setError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى')
@@ -67,11 +65,6 @@ const handleCancel = async () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2" dir="rtl">
-      <div className="text-center mb-8">
-        <h2 className=" font-bold text-gray-900 mb-2">تفاصيل حجزك</h2>
-        <p className="text-gray-600">معلومات موعدك وخيارات الإدارة</p>
-      </div>
-
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
           <p className="text-red-700 font-semibold mb-1 flex items-center gap-2">
@@ -83,24 +76,25 @@ const handleCancel = async () => {
       )}
 
       {/* Booking Details Card */}
-      <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-lg p-6 space-y-4">
+      <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-lg p-4 sm:p-6 space-y-4">
         {/* Header with Booking ID */}
         <div className="flex items-center justify-between pb-4 border-b-2 border-gray-100">
           <div>
             <p className="text-gray-600 text-sm">رقم الحجز</p>
-            <p className="text-2xl font-bold text-[#09b6ab]">{booking.bookingId}</p>
+            <p className="text-xl sm:text-2xl break-all font-bold text-[#09b6ab]">{booking.bookingId}</p>
           </div>
           <div className="px-4 py-2 rounded-lg">
-       
-<p
-  className={`font-semibold text-sm px-3 py-1 rounded-full w-fit
-    ${booking.status === "cancelled"
-      ? "bg-red-100 text-red-700"
-      : "bg-green-100 text-green-700"
-    }`}
->
-  {booking.status}
-</p>
+            <p
+              className={`font-semibold text-sm px-3 py-1 rounded-full w-fit ${
+                booking.status === "cancelled"
+                  ? "bg-red-100 text-red-700"
+                  : (booking.status === "confirmed" || booking.status === "completed")
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
+              {booking.status}
+            </p>
           </div>
         </div>
 
@@ -127,7 +121,6 @@ const handleCancel = async () => {
 
         {/* Appointment Details */}
         <div className="space-y-3 pt-4 border-t-2 border-gray-100">
-          {/* <h3 className="font-bold text-gray-900">تفاصيل الموعد</h3> */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-4 rounded-lg border border-gray-200">
               <p className="text-gray-600 text-xs mb-1">الخدمة</p>
@@ -160,29 +153,35 @@ const handleCancel = async () => {
       </div>
 
       {/* Action Buttons */}
-      {  !cancelConfirm ? (
-        <div className="flex gap-3 pt-4">
+      {!cancelConfirm ? (
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <button
             onClick={onBack}
             disabled={loading}
-            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            className="w-full sm:flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
           >
             رجوع
           </button>
-          <button
-            onClick={() => onReschedule(booking)}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-[#09b6ab] hover:bg-b[#09b6ab] text-white font-semibold rounded-lg transition disabled:opacity-50"
-          >
-            إعادة جدولة
-          </button>
-          <button
-            onClick={() => setCancelConfirm(true)}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
-          >
-            إلغاء الحجز
-          </button>
+
+          {booking.status !== "cancelled" && (
+            <>
+              <button
+                onClick={() => onReschedule(booking)}
+                disabled={loading}
+                className="w-full sm:flex-1 px-6 py-3 bg-[#09b6ab] hover:bg-[#089e95] text-white font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                إعادة جدولة
+              </button>
+
+              <button
+                onClick={() => setCancelConfirm(true)}
+                disabled={loading}
+                className="w-full sm:flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                إلغاء الحجز
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-red-50 border-2 border-red-200 p-6 rounded-lg space-y-4">
